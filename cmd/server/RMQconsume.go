@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"log"
 
 	"github.com/imhasandl/notification-service/internal/rabbitmq"
+	pb "github.com/imhasandl/notification-service/protos"
 )
 
 func (s *server) Consume() {
@@ -23,6 +25,15 @@ func (s *server) Consume() {
 	go func() {
 		for msg := range msgs {
 			log.Printf("Received a message: %v", msg.Body)
+
+			notificationReq := &pb.SendNotificationRequest{
+				Notification: msg.Body,
+			}
+
+			_, err := s.SendNotification(context.Background(), notificationReq)
+			if err != nil {
+				log.Printf("Failed to send notification: %v", err)
+			}
 		}
 	}()
 }

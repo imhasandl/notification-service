@@ -7,9 +7,7 @@ import (
 )
 
 const (
-	RoutingKey   = "message"
-	QueueName    = "message_queue"
-	ExchangeName = "message_exchange"
+	QueueName = "message_queue"
 )
 
 type RabbitMQ struct {
