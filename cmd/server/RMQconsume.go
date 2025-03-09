@@ -12,7 +12,7 @@ func (s *server) Consume() {
 	msgs, err := s.rabbitmq.Channel.Consume(
 		rabbitmq.QueueName, // queue
 		"",                 // consumer
-		true,               // auto-ack
+		false,              // auto-ack
 		false,              // exclusive
 		false,              // no-local
 		false,              // no-wait
@@ -30,9 +30,12 @@ func (s *server) Consume() {
 				Notification: msg.Body,
 			}
 
-			_, err := s.SendNotification(context.Background(), notificationReq)
+			result, err := s.SendNotification(context.Background(), notificationReq)
 			if err != nil {
 				log.Printf("Failed to send notification: %v", err)
+				msg.Reject(true)
+			} else if result.Success {
+				msg.Ack(false)
 			}
 		}
 	}()
