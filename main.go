@@ -8,10 +8,10 @@ import (
 
 	_ "github.com/lib/pq" // Import the postgres driver
 
-	"github.com/imhasandl/message-service/cmd/server"
-	"github.com/imhasandl/message-service/internal/database"
-	"github.com/imhasandl/message-service/internal/rabbitmq"
-	pb "github.com/imhasandl/message-service/protos"
+	"github.com/imhasandl/notification-service/cmd/server"
+	"github.com/imhasandl/notification-service/internal/database"
+	"github.com/imhasandl/notification-service/internal/rabbitmq"
+	pb "github.com/imhasandl/notification-service/protos"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -57,14 +57,14 @@ func main() {
 
 	rabbitmq, err := rabbitmq.NewRabbitMQ(rabbitmqURL)
 	if err != nil {
-		log.Fatalf("error initializing rabbit mq: %v", err)
+		log.Fatalf("Error connecting to rabbit mq: %s", err)
 	}
 	defer rabbitmq.Close()
 
 	server := server.NewServer(dbQueries, tokenSecret, rabbitmq)
 
 	s := grpc.NewServer()
-	pb.RegisterMessageServiceServer(s, server)
+	pb.RegisterNotificationServiceServer(s, server)
 
 	reflection.Register(s)
 	log.Printf("Server listening on %v", lis.Addr())
