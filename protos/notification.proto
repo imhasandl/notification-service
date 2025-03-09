@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/imhasandl/notification-service/protos";
+
+service NotificationService {
+   rpc SendNotification (SendNotificationRequest) returns (SendNotificationResponse) {}
+}
+ 
