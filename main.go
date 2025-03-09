@@ -69,7 +69,7 @@ func main() {
 	reflection.Register(s)
 	log.Printf("Server listening on %v", lis.Addr())
 
-	// Start consuming messages from message-service
+	// Start consuming messages from message-queue
 	go server.Consume()
 
 	if err := s.Serve(lis); err != nil {
