@@ -69,6 +69,9 @@ func main() {
 	reflection.Register(s)
 	log.Printf("Server listening on %v", lis.Addr())
 
+	// Start consuming messages from message-service
+	go server.Consume()
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to lister: %v", err)
 	}

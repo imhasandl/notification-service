@@ -11,9 +11,7 @@ service NotificationService {
 }
  
 message SendNotificationRequest {
-   string user_id = 1;
-   string message = 2;
-   google.protobuf.Timestamp timestamp = 3;
+   bytes notification = 1;
 }
 
 message SendNotificationResponse {
