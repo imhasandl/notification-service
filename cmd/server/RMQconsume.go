@@ -30,12 +30,10 @@ func (s *server) Consume() {
 				Notification: msg.Body,
 			}
 
-			result, err := s.SendNotification(context.Background(), notificationReq)
+			_, err := s.SendNotification(context.Background(), notificationReq)
 			if err != nil {
 				log.Printf("Failed to send notification: %v", err)
 				msg.Reject(true)
-			} else if result.Success {
-				msg.Ack(false)
 			}
 		}
 	}()

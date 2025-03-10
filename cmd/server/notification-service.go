@@ -11,6 +11,7 @@ import (
 	"github.com/imhasandl/notification-service/internal/rabbitmq"
 	pb "github.com/imhasandl/notification-service/protos"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type server struct {
@@ -44,7 +45,11 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 		 return nil, helper.RespondWithErrorGRPC(ctx, codes.Internal, "can't parse json - SendNotification", err)
 	}
 
+	log.Printf("Sent push notification to: %v", notification.ReceiverId)
+
 	return &pb.SendNotificationResponse{
-		Success: true,
+		ReceiverId: notification.ReceiverId,
+		Content: notification.Content,
+		SentAt: timestamppb.New(notification.SentAt),
 	}, nil
 }
