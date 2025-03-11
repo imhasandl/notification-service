@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	QueueName = "message_queue"
+	ExchangeName = "notifications.topic"
+	QueueName    = "notification_service_queue"
 )
 
 type RabbitMQ struct {
@@ -25,6 +26,46 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	ch, err := conn.Channel()
 	if err != nil {
 		log.Printf("can't connect to the channel: %v", err)
+		return nil, err
+	}
+
+	// Declare the topic exchange
+	if err := ch.ExchangeDeclare(
+		ExchangeName, // name
+		"topic",      // type
+		true,         // durable
+		false,        // auto-deleted
+		false,        // internal
+		false,        // no-wait
+		nil,          // arguments
+	); err != nil {
+		log.Printf("failed to declare exchange: %v", err)
+		return nil, err
+	}
+
+	// Declare the queue for the notification service
+	queue, err := ch.QueueDeclare(
+		QueueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		log.Printf("failed to declare queue: %v", err)
+		return nil, err
+	}
+
+	// Bind the queue to the exchange with a wildcard routing key
+	if err := ch.QueueBind(
+		queue.Name,   // queue name
+		"#",          // routing key - match all messages
+		ExchangeName, // exchange
+		false,        // no-wait
+		nil,          // arguments
+	); err != nil {
+		log.Printf("failed to bind queue: %v", err)
 		return nil, err
 	}
 
