@@ -7,3 +7,12 @@ services:
     ports:
       - 50056:50056
 
+  rabbitmq:
+    image: 
+      rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+
+

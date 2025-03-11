@@ -24,7 +24,7 @@ func (s *server) Consume() {
 
 	go func() {
 		for msg := range msgs {
-			log.Printf("Received a message: %v", msg.Body)
+			log.Printf("Received a message: %v", string(msg.Body))
 
 			notificationReq := &pb.SendNotificationRequest{
 				Notification: msg.Body,
