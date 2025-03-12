@@ -33,14 +33,14 @@ func main() {
 		log.Fatalf("Set db connection in env")
 	}
 
-	tokenSecret := os.Getenv("TOKEN_SECRET")
-	if tokenSecret == "" {
-		log.Fatalf("Set db connection in env")
-	}
-
 	rabbitmqURL := os.Getenv("RABBITMQ_URL")
 	if rabbitmqURL == "" {
 		log.Fatalf("Set rabbit mq url path")
+	}
+
+	firebaseKeyPath := os.Getenv("FIREBASE_NOTIFICATION_KEY_PATH")
+	if firebaseKeyPath == "" {
+		log.Fatalf("Set firebase key path")
 	}
 	
 	lis, err := net.Listen("tcp", port)
@@ -61,7 +61,7 @@ func main() {
 	}
 	defer rabbitmq.Close()
 
-	server := server.NewServer(dbQueries, tokenSecret, rabbitmq)
+	server := server.NewServer(dbQueries, rabbitmq, firebaseKeyPath)
 
 	s := grpc.NewServer()
 	pb.RegisterNotificationServiceServer(s, server)
@@ -69,7 +69,7 @@ func main() {
 	reflection.Register(s)
 	log.Printf("Server listening on %v", lis.Addr())
 
-	// Start consuming messages from message-queue
+	// Start consuming messages from notification-queue
 	go server.Consume()
 
 	if err := s.Serve(lis); err != nil {

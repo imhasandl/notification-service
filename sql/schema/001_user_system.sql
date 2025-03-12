@@ -11,5 +11,16 @@ CREATE TABLE users (
    is_verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE INDEX idx_users_username ON users(username);
+
+CREATE TABLE refresh_tokens (
+    token VARCHAR(255) PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    expiry_time TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- +goose Down
+DROP TABLE refresh_tokens;
+DROP INDEX idx_users_username;
 DROP TABLE users;
