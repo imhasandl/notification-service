@@ -15,9 +15,10 @@ message SendNotificationRequest {
 }
 
 message SendNotificationResponse {
-   string receiver_id = 1;
-   string content = 2; 
-   google.protobuf.Timestamp sent_at = 3;
+   string username = 1;
+   string receiver_id = 2;
+   string content = 3; 
+   google.protobuf.Timestamp sent_at = 4;
 }
 
 // protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative notification.proto
