@@ -8,6 +8,7 @@ import (
 
 	"github.com/imhasandl/notification-service/cmd/helper"
 	"github.com/imhasandl/notification-service/internal/database"
+	"github.com/imhasandl/notification-service/internal/firebase"
 	"github.com/imhasandl/notification-service/internal/rabbitmq"
 	pb "github.com/imhasandl/notification-service/protos"
 	"google.golang.org/grpc/codes"
@@ -19,6 +20,7 @@ type server struct {
 	db              *database.Queries
 	rabbitmq        *rabbitmq.RabbitMQ
 	firebaseKeyPath string
+	firebase        *firebase.FirebaseClient
 }
 
 type Notification struct {
@@ -28,12 +30,19 @@ type Notification struct {
 	SentAt     time.Time `json:"sent_at"`
 }
 
-func NewServer(db *database.Queries, rabbitmq *rabbitmq.RabbitMQ, firebaseKey string) *server {
-	return &server{
+func NewServer(
+	db *database.Queries, 
+	rabbitmq *rabbitmq.RabbitMQ, 
+	firebaseKeyPath string, 
+	firebase *firebase.FirebaseClient,
+	) *server {
+	
+		return &server{
 		pb.UnimplementedNotificationServiceServer{},
 		db,
 		rabbitmq,
-		firebaseKey,
+		firebaseKeyPath,
+		firebase,
 	}
 }
 

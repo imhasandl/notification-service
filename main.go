@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/imhasandl/notification-service/cmd/server"
 	"github.com/imhasandl/notification-service/internal/database"
+	"github.com/imhasandl/notification-service/internal/firebase"
 	"github.com/imhasandl/notification-service/internal/rabbitmq"
 	pb "github.com/imhasandl/notification-service/protos"
 	"github.com/joho/godotenv"
@@ -50,18 +52,23 @@ func main() {
 
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("Error opening database: %s", err)
+		log.Fatalf("Error opening database: %v", err)
 	}
 	dbQueries := database.New(dbConn)
 	defer dbConn.Close()
 
 	rabbitmq, err := rabbitmq.NewRabbitMQ(rabbitmqURL)
 	if err != nil {
-		log.Fatalf("Error connecting to rabbit mq: %s", err)
+		log.Fatalf("Error connecting to rabbit mq: %v", err)
 	}
 	defer rabbitmq.Close()
 
-	server := server.NewServer(dbQueries, rabbitmq, firebaseKeyPath)
+	firebase, err := firebase.InitFirebase(context.Background(), firebaseKeyPath)
+	if err != nil {
+		log.Fatalf("Error initializing firebase: %v", err) 
+	}
+
+	server := server.NewServer(dbQueries, rabbitmq, firebaseKeyPath, firebase)
 
 	s := grpc.NewServer()
 	pb.RegisterNotificationServiceServer(s, server)
