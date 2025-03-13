@@ -8,6 +8,7 @@ option go_package = "github.com/imhasandl/notification-service/protos";
 
 service NotificationService {
    rpc SendNotification (SendNotificationRequest) returns (SendNotificationResponse) {}
+   rpc RegisterDeviceToken (RegisterDeviceTokenRequest) returns (RegisterDeviceTokenResponse) {}
 }
  
 message SendNotificationRequest {
@@ -19,6 +20,25 @@ message SendNotificationResponse {
    string receiver_id = 2;
    string content = 3; 
    google.protobuf.Timestamp sent_at = 4;
+}
+
+message RegisterDeviceTokenRequest {
+   string user_id = 1;
+   string device_token = 2;
+   string device_type = 3;
+}
+
+message RegisterDeviceTokenResponse {
+  DeviceToken device_token = 1; 
+}
+
+message DeviceToken {
+   string id = 1;
+   string user_id = 2;
+   string device_token = 3;
+   string device_type = 4;
+   google.protobuf.Timestamp created_at = 5;
+   google.protobuf.Timestamp updated_at = 6;
 }
 
 // protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative notification.proto
