@@ -5,8 +5,8 @@ ON CONFLICT (user_id, device_token)
 DO UPDATE SET updated_at = NOW(), device_type = $3
 RETURNING *;
 
--- name: GetDeviceTokensByUser :many
-SELECT * FROM device_tokens
+-- name: GetDeviceTokensByUser :one
+SELECT device_token FROM device_tokens
 WHERE user_id = $1;
 
 -- name: DeleteDeviceToken :exec
