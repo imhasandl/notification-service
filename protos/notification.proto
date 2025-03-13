@@ -16,10 +16,11 @@ message SendNotificationRequest {
 }
 
 message SendNotificationResponse {
-   string username = 1;
-   string receiver_id = 2;
-   string content = 3; 
-   google.protobuf.Timestamp sent_at = 4;
+   string title = 1;
+   string sender_username = 2;
+   string receiver_id = 4;
+   string content = 5; 
+   google.protobuf.Timestamp sent_at = 6;
 }
 
 message RegisterDeviceTokenRequest {

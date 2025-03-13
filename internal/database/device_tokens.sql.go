@@ -26,39 +26,16 @@ func (q *Queries) DeleteDeviceToken(ctx context.Context, arg DeleteDeviceTokenPa
 	return err
 }
 
-const getDeviceTokensByUser = `-- name: GetDeviceTokensByUser :many
-SELECT id, user_id, device_token, device_type, created_at, updated_at FROM device_tokens
+const getDeviceTokensByUser = `-- name: GetDeviceTokensByUser :one
+SELECT device_token FROM device_tokens
 WHERE user_id = $1
 `
 
-func (q *Queries) GetDeviceTokensByUser(ctx context.Context, userID uuid.UUID) ([]DeviceToken, error) {
-	rows, err := q.db.QueryContext(ctx, getDeviceTokensByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []DeviceToken
-	for rows.Next() {
-		var i DeviceToken
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.DeviceToken,
-			&i.DeviceType,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetDeviceTokensByUser(ctx context.Context, userID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getDeviceTokensByUser, userID)
+	var device_token string
+	err := row.Scan(&device_token)
+	return device_token, err
 }
 
 const registerDeviceToken = `-- name: RegisterDeviceToken :one
