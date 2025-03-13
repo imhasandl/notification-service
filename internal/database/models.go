@@ -18,6 +18,15 @@ type Comment struct {
 	CommentText string
 }
 
+type DeviceToken struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	DeviceToken string
+	DeviceType  string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
 type Message struct {
 	ID         uuid.UUID
 	SentAt     time.Time
