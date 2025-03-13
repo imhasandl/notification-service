@@ -58,3 +58,7 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 		SentAt:     timestamppb.New(notification.SentAt),
 	}, nil
 }
+
+func (s *server) RegisterDeviceToken(ctx context.Context, reg *pb.RegisterDeviceTokenRequest) (*pb.RegisterDeviceTokenResponse, error) {
+	return nil, nil
+}
