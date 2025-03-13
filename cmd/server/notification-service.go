@@ -30,14 +30,8 @@ type Notification struct {
 	SentAt     time.Time `json:"sent_at"`
 }
 
-func NewServer(
-	db *database.Queries, 
-	rabbitmq *rabbitmq.RabbitMQ, 
-	firebaseKeyPath string, 
-	firebase *firebase.FirebaseClient,
-	) *server {
-	
-		return &server{
+func NewServer(db *database.Queries, rabbitmq *rabbitmq.RabbitMQ, firebaseKeyPath string, firebase *firebase.FirebaseClient) *server {
+	return &server{
 		pb.UnimplementedNotificationServiceServer{},
 		db,
 		rabbitmq,
