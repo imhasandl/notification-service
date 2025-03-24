@@ -6,8 +6,11 @@ CREATE TABLE users (
    email TEXT NOT NULL UNIQUE,
    password TEXT NOT NULL,
    username TEXT NOT NULL,
+   subscribers UUID[],
+   subscribed_to UUID[],
    is_premium BOOLEAN NOT NULL DEFAULT FALSE,
    verification_code INT NOT NULL,
+   verification_expire_time TIMESTAMP NOT NULL,
    is_verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
