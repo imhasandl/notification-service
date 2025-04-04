@@ -26,6 +26,8 @@ RABBITMQ_URL="amqp://username:password@host:port"
 FIREBASE_NOTIFICATION_KEY_PATH="path/to/firebase_key.json"
 ```
 
+
+
 ### Firebase Setup
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
@@ -45,51 +47,92 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 # Run migrations
 goose -dir migrations postgres "YOUR_DB_CONNECTION_STRING" up
 ```
-/**
- * SendNotification sends a push notification to a specific user.
- *
- * Request format:
- * The method expects a notification payload in JSON format wrapped in a byte array:
- * {
- *   "title": "Notification title",
- *   "sender_username": "username of sender",
- *   "receiver_id": "UUID of recipient user",
- *   "content": "Notification message content",
- *   "sent_at": "2023-01-01T12:00:00Z" (timestamp in RFC3339 format)
- * }
- *
- * Response:
- * Returns a SendNotificationResponse containing:
- * - title: The notification title
- * - sender_username: Username of the sender
- * - receiver_id: UUID of the recipient
- * - content: The notification message
- * - sent_at: Timestamp when notification was sent
- *
- * Note: This method will attempt to deliver the notification via Firebase Cloud
- * Messaging if the user has a registered device token. If Firebase isn't
- * initialized or no device token is found, the method will log this situation
- * but will still return a successful response.
- */
 ## gRPC Methods
 
 The service implements the following gRPC methods:
 
-### RegisterDevice
+### SendNotification
+
+Sends a push notification to a specific user.
+
+### Request Format
+
+```json
+{
+   "title": "Notification title",
+   "sender_username": "username of sender",
+   "receiver_id": "UUID of recipient user",
+   "content": "Notification message content", 
+   "sent_at": "2023-01-01T12:00:00Z"
+}
+```
+### Response
+
+```json
+{
+   "title": "Notification title",
+   "sender_username": "Username of the sender",
+   "receiver_id": "UUID of the recipient",
+   "content": "The notification message",
+   "sent_at": "Timestamp when notification was sent"
+}
+```
+
+> **Note:** This method delivers notifications via Firebase Cloud Messaging if the user has a registered device token. If Firebase isn't initialized or no device token exists, the method will log this situation but still return a successful response.
+
+### RegisterDeviceToken
 
 Registers a user's device for push notifications.
 
-### GetUserNotifications
+### Request Format
 
-Retrieves a list of notifications for a specific user.
+```json
+{
+   "user_id": "UUID of the user",
+   "device_token": "Device-specific token for push notifications",
+   "device_type": "Device platform (e.g., 'android', 'ios', 'web')"
+}
 
-### MarkNotificationAsRead
+### Response Format
+```json
+{
+   "device_token": {
+      "id": "UUID of the device token record",
+      "user_id": "UUID of the user",
+      "device_token": "The device token string",
+      "device_type": "Device platform type",
+      "created_at": "Timestamp when the record was created",
+      "updated_at": "Timestamp when the record was last updated"
+   }
+}
+```
 
-Marks a specific notification as read.
+> **Note:** This method delivers notifications via Firebase Cloud Messaging if the user has a registered device token. If Firebase isn't initialized or no device token exists, the method will log this situation but still return a successful response.
 
-### DeleteNotification
+## RabbitMQ Integration
 
-Removes a notification from the user's list.
+The Notification Service consumes messages from RabbitMQ to process asynchronous notification requests from other services.
+
+### Message Consumption
+
+The service automatically sets up and listens to:
+- **Exchange**: `notifications.topic` (topic exchange)
+- **Queue**: `notification_service_queue`
+- **Routing Key**: `#` (wildcard - receives all messages published to the exchange)
+
+### Publishing Messages to the Notification Service
+
+Other microservices can send notification requests by publishing messages to the `notifications.topic` exchange. Messages should be JSON formatted with the following structure:
+
+```json
+{
+   "title": "Notification title",
+   "sender_id": "username of sender",
+   "receiver_id": "UUID of recipient user",
+   "content": "Notification message content", 
+   "sent_at": "2023-01-01T12:00:00Z"
+}
+```
 
 ## Running the Service
 
