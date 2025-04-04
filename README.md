@@ -45,7 +45,32 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 # Run migrations
 goose -dir migrations postgres "YOUR_DB_CONNECTION_STRING" up
 ```
-
+/**
+ * SendNotification sends a push notification to a specific user.
+ *
+ * Request format:
+ * The method expects a notification payload in JSON format wrapped in a byte array:
+ * {
+ *   "title": "Notification title",
+ *   "sender_username": "username of sender",
+ *   "receiver_id": "UUID of recipient user",
+ *   "content": "Notification message content",
+ *   "sent_at": "2023-01-01T12:00:00Z" (timestamp in RFC3339 format)
+ * }
+ *
+ * Response:
+ * Returns a SendNotificationResponse containing:
+ * - title: The notification title
+ * - sender_username: Username of the sender
+ * - receiver_id: UUID of the recipient
+ * - content: The notification message
+ * - sent_at: Timestamp when notification was sent
+ *
+ * Note: This method will attempt to deliver the notification via Firebase Cloud
+ * Messaging if the user has a registered device token. If Firebase isn't
+ * initialized or no device token is found, the method will log this situation
+ * but will still return a successful response.
+ */
 ## gRPC Methods
 
 The service implements the following gRPC methods:
