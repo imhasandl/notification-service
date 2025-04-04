@@ -44,8 +44,35 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Run migrations
 goose -dir migrations postgres "YOUR_DB_CONNECTION_STRING" up
+## SendNotification
+
+Sends a push notification to a specific user.
+
+### Request Format
+
+```json
+{
+   "title": "Notification title",
+   "sender_username": "username of sender",
+   "receiver_id": "UUID of recipient user",
+   "content": "Notification message content", 
+   "sent_at": "2023-01-01T12:00:00Z"
+}
 ```
-/**
+
+### Response
+
+```json
+{
+   "title": "Notification title",
+   "sender_username": "Username of the sender",
+   "receiver_id": "UUID of the recipient",
+   "content": "The notification message",
+   "sent_at": "Timestamp when notification was sent"
+}
+```
+
+> **Note:** This method delivers notifications via Firebase Cloud Messaging if the user has a registered device token. If Firebase isn't initialized or no device token exists, the method will log this situation but still return a successful response.
  * SendNotification sends a push notification to a specific user.
  *
  * Request format:
