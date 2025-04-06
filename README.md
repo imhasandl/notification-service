@@ -26,8 +26,6 @@ RABBITMQ_URL="amqp://username:password@host:port"
 FIREBASE_NOTIFICATION_KEY_PATH="path/to/firebase_key.json"
 ```
 
-
-
 ### Firebase Setup
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
