@@ -6,25 +6,31 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// Constants for RabbitMQ configuration
 const (
+	// ExchangeName is the name of the topic exchange for notifications
 	ExchangeName = "notifications.topic"
-	QueueName    = "notification_service_queue"
+	// QueueName is the name of the queue for consuming notifications
+	QueueName = "notification_service_queue"
 )
 
+// RabbitMQ handles the connection and channel to a RabbitMQ server
 type RabbitMQ struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
 }
 
-// RabbitMQClient defines the interface for RabbitMQ operations
-type RabbitMQClient interface {
+// Client defines the interface for RabbitMQ operations
+type Client interface {
 	Close()
 	GetChannel() *amqp.Channel
 }
 
 // Ensure RabbitMQ implements the interface
-var _ RabbitMQClient = (*RabbitMQ)(nil)
+var _ Client = (*RabbitMQ)(nil)
 
+// NewRabbitMQ creates a new RabbitMQ client with the provided URL,
+// setting up the exchange and queue for notification messaging.
 func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -84,6 +90,7 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	}, nil
 }
 
+// Close gracefully closes the RabbitMQ channel and connection.
 func (r *RabbitMQ) Close() {
 	if r.Channel != nil {
 		if err := r.Channel.Close(); err != nil {

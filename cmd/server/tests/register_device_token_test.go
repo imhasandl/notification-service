@@ -24,7 +24,7 @@ func TestRegisterDeviceToken(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
 		name              string
-		userId            string
+		userID            string // Fixed naming convention: userId → userID
 		deviceToken       string
 		deviceType        string
 		setupMocks        func(*mocks.MockQueries)
@@ -33,7 +33,7 @@ func TestRegisterDeviceToken(t *testing.T) {
 	}{
 		{
 			name:        "Success case",
-			userId:      validUserID.String(),
+			userID:      validUserID.String(),
 			deviceToken: validDeviceToken,
 			deviceType:  validDeviceType,
 			setupMocks: func(db *mocks.MockQueries) {
@@ -62,7 +62,7 @@ func TestRegisterDeviceToken(t *testing.T) {
 		},
 		{
 			name:              "Invalid UUID",
-			userId:            "not-a-valid-uuid",
+			userID:            "not-a-valid-uuid",
 			deviceToken:       validDeviceToken,
 			deviceType:        validDeviceType,
 			setupMocks:        func(*mocks.MockQueries) {},
@@ -71,7 +71,7 @@ func TestRegisterDeviceToken(t *testing.T) {
 		},
 		{
 			name:        "Database error",
-			userId:      validUserID.String(),
+			userID:      validUserID.String(),
 			deviceToken: validDeviceToken,
 			deviceType:  validDeviceType,
 			setupMocks: func(db *mocks.MockQueries) {
@@ -99,7 +99,7 @@ func TestRegisterDeviceToken(t *testing.T) {
 
 			// Make the request
 			request := &pb.RegisterDeviceTokenRequest{
-				UserId:      tc.userId,
+				UserId:      tc.userID,
 				DeviceToken: tc.deviceToken,
 				DeviceType:  tc.deviceType,
 			}

@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// DBQuerier defines the interface for database operations required by the notification service.
 type DBQuerier interface {
 	GetDeviceTokensByUserID(ctx context.Context, userID uuid.UUID) (string, error)
 	RegisterDeviceToken(ctx context.Context, arg database.RegisterDeviceTokenParams) (database.DeviceToken, error)
@@ -28,21 +29,23 @@ type DBQuerier interface {
 type server struct {
 	pb.UnimplementedNotificationServiceServer
 	db              DBQuerier
-	rabbitmq        rabbitmq.RabbitMQClient
+	rabbitmq        rabbitmq.Client
 	firebaseKeyPath string
-	firebase        firebase.FirebaseClientInterface
+	firebase        firebase.ClientInterface
 }
 
+// Notification represents the structure of a notification message in the system.
 type Notification struct {
 	Title          string    `json:"title"`
 	SenderUsername string    `json:"sender_username"`
-	ReceiverId     string    `json:"receiver_id"`
+	ReceiverID     string    `json:"receiver_id"` // Fixed naming convention
 	Content        string    `json:"content"`
 	SentAt         time.Time `json:"sent_at"`
 }
 
-// Update the constructor to accept the interface
-func NewServer(db DBQuerier, rabbitmq rabbitmq.RabbitMQClient, firebaseKeyPath string, firebase firebase.FirebaseClientInterface) *server {
+// NewServer creates a new notification server instance with the provided dependencies.
+// Returns a NotificationServiceServer implementation.
+func NewServer(db DBQuerier, rabbitmq rabbitmq.Client, firebaseKeyPath string, firebase firebase.ClientInterface) pb.NotificationServiceServer {
 	return &server{
 		pb.UnimplementedNotificationServiceServer{},
 		db,
@@ -59,25 +62,25 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.Internal, "can't parse json - SendNotification", err)
 	}
 
-	receiverId, err := uuid.Parse(notification.ReceiverId)
+	receiverID, err := uuid.Parse(notification.ReceiverID)
 	if err != nil {
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.InvalidArgument, "can't parse receiver id - SendNotification", err)
 	}
 
-	log.Printf("Sent push notification to: %v", notification.ReceiverId)
+	log.Printf("Sent push notification to: %v", notification.ReceiverID)
 
 	// Check if Firebase isn't initialized
 	if s.firebase == nil && s.firebase.GetMessagingClient() == nil {
 		log.Printf("Firebase not initialized, skipping push notification")
 	}
 
-	receiverDeviceToken, err := s.db.GetDeviceTokensByUserID(ctx, receiverId)
+	receiverDeviceToken, err := s.db.GetDeviceTokensByUserID(ctx, receiverID)
 	if err != nil {
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.Internal, "Can't get receiver's device token from db - SendNotification", err)
 	}
 
 	if receiverDeviceToken == "" {
-		log.Printf("No device token found for user %s", notification.ReceiverId)
+		log.Printf("No device token found for user %s", notification.ReceiverID)
 	}
 
 	message := &messaging.Message{
@@ -89,7 +92,7 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 		Data: map[string]string{
 			"title":           notification.Title,
 			"sender_username": notification.SenderUsername,
-			"receiver_id":     notification.ReceiverId,
+			"receiver_id":     notification.ReceiverID,
 			"content":         notification.Content,
 			"sent_at":         notification.SentAt.Format(time.RFC3339),
 		},
