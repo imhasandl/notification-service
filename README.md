@@ -64,6 +64,7 @@ Sends a push notification to a specific user.
    "sent_at": "2023-01-01T12:00:00Z"
 }
 ```
+
 #### Response
 
 ```json
@@ -90,6 +91,7 @@ Registers a user's device for push notifications.
    "device_token": "Device-specific token for push notifications",
    "device_type": "Device platform (e.g., 'android', 'ios', 'web')"
 }
+```
 
 #### Response Format
 
