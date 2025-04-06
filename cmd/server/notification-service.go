@@ -17,12 +17,20 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type DBQuerier interface {
+	GetDeviceTokensByUserID(ctx context.Context, userID uuid.UUID) (string, error)
+	RegisterDeviceToken(ctx context.Context, arg database.RegisterDeviceTokenParams) (database.DeviceToken, error)
+	DeleteDeviceToken(ctx context.Context, arg database.DeleteDeviceTokenParams) error
+	SendNotification(ctx context.Context) error
+}
+
+// Update the server struct to use the interface
 type server struct {
 	pb.UnimplementedNotificationServiceServer
-	db              *database.Queries
-	rabbitmq        *rabbitmq.RabbitMQ
+	db              DBQuerier
+	rabbitmq        rabbitmq.RabbitMQClient
 	firebaseKeyPath string
-	firebase        *firebase.FirebaseClient
+	firebase        firebase.FirebaseClientInterface
 }
 
 type Notification struct {
@@ -33,7 +41,8 @@ type Notification struct {
 	SentAt         time.Time `json:"sent_at"`
 }
 
-func NewServer(db *database.Queries, rabbitmq *rabbitmq.RabbitMQ, firebaseKeyPath string, firebase *firebase.FirebaseClient) *server {
+// Update the constructor to accept the interface
+func NewServer(db DBQuerier, rabbitmq rabbitmq.RabbitMQClient, firebaseKeyPath string, firebase firebase.FirebaseClientInterface) *server {
 	return &server{
 		pb.UnimplementedNotificationServiceServer{},
 		db,
@@ -58,11 +67,11 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 	log.Printf("Sent push notification to: %v", notification.ReceiverId)
 
 	// Check if Firebase isn't initialized
-	if s.firebase == nil && s.firebase.FCMClient == nil {
+	if s.firebase == nil && s.firebase.GetMessagingClient() == nil {
 		log.Printf("Firebase not initialized, skipping push notification")
 	}
 
-	receiverDeviceToken, err := s.db.GetDeviceTokensByUser(ctx, receiverId)
+	receiverDeviceToken, err := s.db.GetDeviceTokensByUserID(ctx, receiverId)
 	if err != nil {
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.Internal, "Can't get receiver's device token from db - SendNotification", err)
 	}
@@ -83,23 +92,19 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 			"receiver_id":     notification.ReceiverId,
 			"content":         notification.Content,
 			"sent_at":         notification.SentAt.Format(time.RFC3339),
-	  },
+		},
 	}
 
 	// Send the Message
-	response, err := s.firebase.FCMClient.Send(ctx, message)
+	response, err := s.firebase.GetMessagingClient().Send(ctx, message)
 	if err != nil {
 		log.Printf("Error sending FCM message: %v", err)
-  } else {
+	} else {
 		log.Printf("Successfully sent FCM message: %s", response)
-  }
+	}
 
 	return &pb.SendNotificationResponse{
-		Title:          notification.Title,
-		SenderUsername: notification.SenderUsername,
-		ReceiverId:     notification.ReceiverId,
-		Content:        notification.Content,
-		SentAt:         timestamppb.New(notification.SentAt),
+		Status: true,
 	}, nil
 }
 

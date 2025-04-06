@@ -16,6 +16,15 @@ type RabbitMQ struct {
 	Channel *amqp.Channel
 }
 
+// RabbitMQClient defines the interface for RabbitMQ operations
+type RabbitMQClient interface {
+	Close()
+	GetChannel() *amqp.Channel
+}
+
+// Ensure RabbitMQ implements the interface
+var _ RabbitMQClient = (*RabbitMQ)(nil)
+
 func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -86,4 +95,9 @@ func (r *RabbitMQ) Close() {
 			log.Printf("error closing connection: %v", err)
 		}
 	}
+}
+
+// GetChannel returns the current channel
+func (r *RabbitMQ) GetChannel() *amqp.Channel {
+	return r.Channel
 }

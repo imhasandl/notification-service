@@ -21,7 +21,6 @@ Create a `.env` file in the root directory with the following variables:
 PORT=":YOUR_GRPC_PORT"
 DB_URL="postgres://username:password@host:port/database?sslmode=disable"
 # DB_URL="postgres://username:password@db:port/database?sslmode=disable" // FOR DOCKER COMPOSE
-TOKEN_SECRET="YOUR_JWT_SECRET_KEY"
 RABBITMQ_URL="amqp://username:password@host:port"
 FIREBASE_NOTIFICATION_KEY_PATH="path/to/firebase_key.json"
 ```
@@ -44,11 +43,52 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Run migrations
 goose -dir migrations postgres "YOUR_DB_CONNECTION_STRING" up
+```
+
+## gRPC Methods
+
+The service implements the following gRPC methods:
+
+## RegisterDeviceToken
+
+RegisterDeviceToken allows clients to register a device token for receiving push notifications. This method stores the association between a user and their device token in the database, enabling targeted delivery of notifications.
+
+The method supports both new token registration and updating existing tokens. If a token for the user already exists, the record will be updated with the new information.
+
+#### Request format
+
+```json
+{
+   "user_id": "UUID of the user",
+   "device_token": "Token provided by FCM or APNs",
+   "device_type": "Device platform (e.g., android, ios, web)"
+}
+```
+
+#### Response format
+
+```json
+{
+   "device_token": {
+      "id": "UUID of the registration entry",
+      "user_id": "UUID of the user",
+      "device_token": "The registered device token",
+      "device_type": "Device platform",
+      "created_at": "2023-01-01T12:00:00Z",
+      "updated_at": "2023-01-01T12:00:00Z"
+   }
+}
+```
+
+> **Note:** Device tokens are unique per user and device. Attempting to register the same token for the same user will update the existing record rather than creating a duplicate.
+
 ## SendNotification
 
-Sends a push notification to a specific user.
+SendNotification processes notification requests that are consumed from RabbitMQ. Other microservices in the system can publish notification events to RabbitMQ queues, which are then picked up by the Notification Service. This allows for asynchronous notification handling across the platform.
 
-### Request Format
+The service listens to designated RabbitMQ queues and processes incoming messages according to their type and content. When a message is received, it is parsed and sent as a notification to the intended recipient.
+
+#### Request format from different service
 
 ```json
 {
@@ -60,63 +100,15 @@ Sends a push notification to a specific user.
 }
 ```
 
-### Response
+#### If message sent successfully the status response will be TRUE
 
 ```json
 {
-   "title": "Notification title",
-   "sender_username": "Username of the sender",
-   "receiver_id": "UUID of the recipient",
-   "content": "The notification message",
-   "sent_at": "Timestamp when notification was sent"
+   "status": true
 }
 ```
 
 > **Note:** This method delivers notifications via Firebase Cloud Messaging if the user has a registered device token. If Firebase isn't initialized or no device token exists, the method will log this situation but still return a successful response.
- * SendNotification sends a push notification to a specific user.
- *
- * Request format:
- * The method expects a notification payload in JSON format wrapped in a byte array:
- * {
- *   "title": "Notification title",
- *   "sender_username": "username of sender",
- *   "receiver_id": "UUID of recipient user",
- *   "content": "Notification message content",
- *   "sent_at": "2023-01-01T12:00:00Z" (timestamp in RFC3339 format)
- * }
- *
- * Response:
- * Returns a SendNotificationResponse containing:
- * - title: The notification title
- * - sender_username: Username of the sender
- * - receiver_id: UUID of the recipient
- * - content: The notification message
- * - sent_at: Timestamp when notification was sent
- *
- * Note: This method will attempt to deliver the notification via Firebase Cloud
- * Messaging if the user has a registered device token. If Firebase isn't
- * initialized or no device token is found, the method will log this situation
- * but will still return a successful response.
- */
-## gRPC Methods
-
-The service implements the following gRPC methods:
-
-### RegisterDevice
-
-Registers a user's device for push notifications.
-
-### GetUserNotifications
-
-Retrieves a list of notifications for a specific user.
-
-### MarkNotificationAsRead
-
-Marks a specific notification as read.
-
-### DeleteNotification
-
-Removes a notification from the user's list.
 
 ## Running the Service
 

@@ -9,7 +9,7 @@ import (
 )
 
 func (s *server) Consume() {
-	msgs, err := s.rabbitmq.Channel.Consume(
+	msgs, err := s.rabbitmq.GetChannel().Consume(
 		rabbitmq.QueueName, // queue
 		"",                 // consumer
 		false,              // auto-ack

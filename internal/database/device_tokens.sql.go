@@ -26,13 +26,13 @@ func (q *Queries) DeleteDeviceToken(ctx context.Context, arg DeleteDeviceTokenPa
 	return err
 }
 
-const getDeviceTokensByUser = `-- name: GetDeviceTokensByUser :one
+const getDeviceTokensByUserID = `-- name: GetDeviceTokensByUserID :one
 SELECT device_token FROM device_tokens
 WHERE user_id = $1
 `
 
-func (q *Queries) GetDeviceTokensByUser(ctx context.Context, userID uuid.UUID) (string, error) {
-	row := q.db.QueryRowContext(ctx, getDeviceTokensByUser, userID)
+func (q *Queries) GetDeviceTokensByUserID(ctx context.Context, userID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getDeviceTokensByUserID, userID)
 	var device_token string
 	err := row.Scan(&device_token)
 	return device_token, err
