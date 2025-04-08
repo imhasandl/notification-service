@@ -9,6 +9,8 @@ option go_package = "github.com/imhasandl/notification-service/protos";
 service NotificationService {
    rpc SendNotification (SendNotificationRequest) returns (SendNotificationResponse) {}
    rpc RegisterDeviceToken (RegisterDeviceTokenRequest) returns (RegisterDeviceTokenResponse) {}
+
+   rpc DeleteDeviceToken (DeleteDeviceTokenRequest) returns (DeleteDeviceTokenResponse) {}
 }
  
 message SendNotificationRequest {
@@ -26,7 +28,15 @@ message RegisterDeviceTokenRequest {
 }
 
 message RegisterDeviceTokenResponse {
-  DeviceToken device_token = 1; 
+   DeviceToken device_token = 1; 
+}
+
+message DeleteDeviceTokenRequest {
+   string id = 1;
+}
+
+message DeleteDeviceTokenResponse {
+   bool status = 1;
 }
 
 message DeviceToken {
