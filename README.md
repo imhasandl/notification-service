@@ -110,6 +110,12 @@ Registers a user's device for push notifications.
 
 > **Note:** This method delivers notifications via Firebase Cloud Messaging if the user has a registered device token. If Firebase isn't initialized or no device token exists, the method will log this situation but still return a successful response.
 
+
+
+### DeleteDeviceToken
+
+
+
 ## RabbitMQ Integration
 
 The Notification Service consumes messages from RabbitMQ to process asynchronous notification requests from other services.
