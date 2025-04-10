@@ -32,7 +32,8 @@ message RegisterDeviceTokenResponse {
 }
 
 message DeleteDeviceTokenRequest {
-   string id = 1;
+   string user_id = 1;
+   string device_token = 2;
 }
 
 message DeleteDeviceTokenResponse {

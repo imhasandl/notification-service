@@ -137,3 +137,24 @@ func (s *server) RegisterDeviceToken(ctx context.Context, req *pb.RegisterDevice
 		},
 	}, nil
 }
+
+func (s *server) DeleteDeviceToken(ctx context.Context, req *pb.DeleteDeviceTokenRequest) (*pb.DeleteDeviceTokenResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, helper.RespondWithErrorGRPC(ctx, codes.InvalidArgument, "can't parse user's incoming id - DeleteDeviceToken", err)
+	}
+
+	deleteDeviceTokenParams := database.DeleteDeviceTokenParams{
+		UserID: userID,
+		DeviceToken: req.GetDeviceToken(),
+	}
+
+	err = s.db.DeleteDeviceToken(ctx, deleteDeviceTokenParams)
+	if err != nil {
+		return nil, helper.RespondWithErrorGRPC(ctx, codes.InvalidArgument, "can't delete device token of a user - DeleteDeviceToken", err)
+	}
+
+	return &pb.DeleteDeviceTokenResponse{
+		Status: true,
+	}, nil
+}
