@@ -120,7 +120,24 @@ Registers a user's device for push notifications.
 
 ### DeleteDeviceToken
 
+Uses given ID of user's device token and deletes it in database.
 
+#### Request Format
+
+```json
+{
+   "user_id": "UUID of a user",
+   "device_token": "user's device token"
+}
+```
+
+#### Response Format
+
+```json
+{
+   "status": "boolean value for the result of the request if status is TRUE request was successful and FALSE otherwise"
+}
+```
 
 ## RabbitMQ Integration
 
