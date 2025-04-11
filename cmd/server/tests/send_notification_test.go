@@ -25,13 +25,13 @@ func TestSendNotification(t *testing.T) {
 	notificationPayload := struct {
 		Title          string    `json:"title"`
 		SenderUsername string    `json:"sender_username"`
-		ReceiverId     string    `json:"receiver_id"`
+		ReceiverID     string    `json:"receiver_id"` // Fixed naming convention: ReceiverId → ReceiverID
 		Content        string    `json:"content"`
 		SentAt         time.Time `json:"sent_at"`
 	}{
 		Title:          "Test Notification",
 		SenderUsername: "testuser",
-		ReceiverId:     validUserID.String(),
+		ReceiverID:     validUserID.String(), // Fix this reference too
 		Content:        "This is a test notification",
 		SentAt:         time.Now(),
 	}
@@ -40,7 +40,7 @@ func TestSendNotification(t *testing.T) {
 
 	// Create invalid notification with bad UUID
 	invalidUUIDNotification := notificationPayload
-	invalidUUIDNotification.ReceiverId = "not-a-valid-uuid"
+	invalidUUIDNotification.ReceiverID = "not-a-valid-uuid" // Fix this reference too
 	invalidUUIDBytes, _ := json.Marshal(invalidUUIDNotification)
 
 	// Define test cases
