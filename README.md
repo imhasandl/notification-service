@@ -1,3 +1,9 @@
+[![CI](https://github.com/imhasandl/notification-service/actions/workflows/ci.yml/badge.svg)](https://github.com/imhasandl/notification-service/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/imhasandl/notification-service)](https://goreportcard.com/report/github.com/imhasandl/notification-service)
+[![GoDoc](https://godoc.org/github.com/imhasandl/notification-service?status.svg)](https://godoc.org/github.com/imhasandl/notification-service)
+[![Coverage](https://codecov.io/gh/imhasandl/notification-service/branch/main/graph/badge.svg)](https://codecov.io/gh/imhasandl/notification-service)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/imhasandl/notification-service)](https://golang.org/doc/devel/release.html)
+
 # Notification Service
 
 A microservice for handling notifications in a social media application, built with Go and gRPC.
