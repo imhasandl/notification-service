@@ -23,7 +23,7 @@ The Notification Service is responsible for sending and managing notifications f
 
 Create a `.env` file in the root directory with the following variables:
 
-```
+```env
 PORT=":YOUR_GRPC_PORT"
 DB_URL="postgres://username:password@host:port/database?sslmode=disable"
 # DB_URL="postgres://username:password@db:port/database?sslmode=disable" // FOR DOCKER COMPOSE
