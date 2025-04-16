@@ -8,6 +8,10 @@ import (
 	pb "github.com/imhasandl/notification-service/protos"
 )
 
+// Consume starts consuming messages from the RabbitMQ queue and processes them as notifications.
+// It registers a consumer with the RabbitMQ channel and handles incoming messages
+// by converting them to notification requests and sending them through the SendNotification method.
+// The method runs a goroutine that continuously processes messages from the queue.
 func (s *Server) Consume() {
 	msgs, err := s.rabbitmq.GetChannel().Consume(
 		rabbitmq.QueueName, // queue
