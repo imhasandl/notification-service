@@ -25,8 +25,8 @@ type DBQuerier interface {
 	SendNotification(ctx context.Context) error
 }
 
-// Update the server struct to use the interface
-type server struct {
+// Server implements the notification service gRPC server
+type Server struct {
 	pb.UnimplementedNotificationServiceServer
 	db              DBQuerier
 	rabbitmq        rabbitmq.Client
@@ -44,8 +44,8 @@ type Notification struct {
 }
 
 // NewServer creates a new notification service server with the provided dependencies
-func NewServer(db DBQuerier, rabbitmq rabbitmq.Client, firebaseKeyPath string, firebase firebase.ClientInterface) *server {
-	return &server{
+func NewServer(db DBQuerier, rabbitmq rabbitmq.Client, firebaseKeyPath string, firebase firebase.ClientInterface) *Server {
+	return &Server{
 		pb.UnimplementedNotificationServiceServer{},
 		db,
 		rabbitmq,
@@ -54,7 +54,9 @@ func NewServer(db DBQuerier, rabbitmq rabbitmq.Client, firebaseKeyPath string, f
 	}
 }
 
-func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationRequest) (*pb.SendNotificationResponse, error) {
+// SendNotification handles requests to send push notifications to users.
+// It implements the NotificationServiceServer interface from the protobuf definition.
+func (s *Server) SendNotification(ctx context.Context, req *pb.SendNotificationRequest) (*pb.SendNotificationResponse, error) {
 	var notification Notification
 	err := json.Unmarshal(req.GetNotification(), &notification)
 	if err != nil {
@@ -110,7 +112,9 @@ func (s *server) SendNotification(ctx context.Context, req *pb.SendNotificationR
 	}, nil
 }
 
-func (s *server) RegisterDeviceToken(ctx context.Context, req *pb.RegisterDeviceTokenRequest) (*pb.RegisterDeviceTokenResponse, error) {
+// RegisterDeviceToken handles requests to register a new device token for push notifications.
+// It implements the NotificationServiceServer interface from the protobuf definition.
+func (s *Server) RegisterDeviceToken(ctx context.Context, req *pb.RegisterDeviceTokenRequest) (*pb.RegisterDeviceTokenResponse, error) {
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.InvalidArgument, "can't parse provided uuid - RegisterDeviceToken", err)
@@ -140,7 +144,9 @@ func (s *server) RegisterDeviceToken(ctx context.Context, req *pb.RegisterDevice
 	}, nil
 }
 
-func (s *server) DeleteDeviceToken(ctx context.Context, req *pb.DeleteDeviceTokenRequest) (*pb.DeleteDeviceTokenResponse, error) {
+// DeleteDeviceToken handles requests to delete a device token for a user.
+// It implements the NotificationServiceServer interface from the protobuf definition.
+func (s *Server) DeleteDeviceToken(ctx context.Context, req *pb.DeleteDeviceTokenRequest) (*pb.DeleteDeviceTokenResponse, error) {
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, helper.RespondWithErrorGRPC(ctx, codes.InvalidArgument, "can't parse user's incoming id - DeleteDeviceToken", err)
