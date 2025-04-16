@@ -9,11 +9,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// RespondWithErrorGRPC returns a properly formatted gRPC error.
+// It logs the error and returns a status error with the given code and message.
 func RespondWithErrorGRPC(ctx context.Context, code codes.Code, msg string, err error) error {
 	if err != nil {
 		log.Println(err)
 	}
-	
+
 	if code > codes.Internal { // 5XX equivalent in gRPC
 		log.Printf("Responding with 5XX gRPC error: %s", msg)
 	}

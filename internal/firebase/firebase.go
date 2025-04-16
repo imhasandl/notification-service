@@ -9,8 +9,8 @@ import (
 	"google.golang.org/api/option"
 )
 
-// FirebaseClientInterface defines the interface for Firebase operations
-type FirebaseClientInterface interface {
+// ClientInterface defines the interface for Firebase operations
+type ClientInterface interface {
 	// Add the methods needed by server
 	GetMessagingClient() MessagingClient
 }
@@ -20,12 +20,14 @@ type MessagingClient interface {
 	Send(ctx context.Context, message *messaging.Message) (string, error)
 }
 
-type FirebaseClient struct {
+// Client represents a Firebase client with messaging capabilities
+type Client struct {
 	App       *firebase.App
 	FCMClient *messaging.Client
 }
 
-func InitFirebase(ctx context.Context, credentialsFilePath string) (*FirebaseClient, error) {
+// InitFirebase initializes a new Firebase client with the provided credentials
+func InitFirebase(ctx context.Context, credentialsFilePath string) (*Client, error) {
 	opt := option.WithCredentialsFile(credentialsFilePath)
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
@@ -40,13 +42,13 @@ func InitFirebase(ctx context.Context, credentialsFilePath string) (*FirebaseCli
 		return nil, err
 	}
 
-	return &FirebaseClient{
+	return &Client{
 		App:       app,
 		FCMClient: fcmClient,
 	}, nil
 }
 
-// Ensure FirebaseClient implements the interface
-func (fc *FirebaseClient) GetMessagingClient() MessagingClient {
+// GetMessagingClient returns the Firebase Cloud Messaging client
+func (fc *Client) GetMessagingClient() MessagingClient {
 	return fc.FCMClient
 }

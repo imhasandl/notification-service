@@ -7,24 +7,28 @@ import (
 )
 
 const (
+	// ExchangeName is the name of the RabbitMQ exchange used for notifications
 	ExchangeName = "notifications.topic"
-	QueueName    = "notification_service_queue"
+	// QueueName is the name of the queue for processing notifications
+	QueueName = "notification_service_queue"
 )
 
+// RabbitMQ represents a RabbitMQ client connection
 type RabbitMQ struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
 }
 
-// RabbitMQClient defines the interface for RabbitMQ operations
-type RabbitMQClient interface {
+// Client defines the interface for RabbitMQ operations
+type Client interface {
 	Close()
 	GetChannel() *amqp.Channel
 }
 
 // Ensure RabbitMQ implements the interface
-var _ RabbitMQClient = (*RabbitMQ)(nil)
+var _ Client = (*RabbitMQ)(nil)
 
+// NewRabbitMQ creates a new RabbitMQ client connected to the specified URL
 func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -84,6 +88,7 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	}, nil
 }
 
+// Close closes the RabbitMQ connection and channel
 func (r *RabbitMQ) Close() {
 	if r.Channel != nil {
 		if err := r.Channel.Close(); err != nil {

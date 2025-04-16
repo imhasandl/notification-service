@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Printf("Error loading .env file: %v", err)
@@ -44,7 +43,7 @@ func main() {
 	if firebaseKeyPath == "" {
 		log.Fatalf("Set firebase key path")
 	}
-	
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listed: %v", err)
@@ -65,7 +64,7 @@ func main() {
 
 	firebase, err := firebase.InitFirebase(context.Background(), firebaseKeyPath)
 	if err != nil {
-		log.Fatalf("Error initializing firebase: %v", err) 
+		log.Fatalf("Error initializing firebase: %v", err)
 	}
 
 	server := server.NewServer(dbQueries, rabbitmq, firebaseKeyPath, firebase)

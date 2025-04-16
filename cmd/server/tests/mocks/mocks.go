@@ -17,6 +17,7 @@ type MockQueries struct {
 	mock.Mock
 }
 
+// NewMockQueries creates and returns a new mock database queries object
 func NewMockQueries() *MockQueries {
 	return &MockQueries{}
 }
@@ -59,7 +60,7 @@ func NewMockFirebaseClient() *MockFirebaseClient {
 	}
 }
 
-// Update MockFirebaseClient to implement FirebaseClientInterface
+// GetMessagingClient returns the FCM client for sending messages
 func (m *MockFirebaseClient) GetMessagingClient() firebase.MessagingClient {
 	return m.FCMClient
 }
@@ -98,7 +99,7 @@ func (m *MockRabbitMQ) Close() {
 }
 
 // Ensure MockRabbitMQ implements the RabbitMQClient interface
-var _ rabbitmq.RabbitMQClient = (*MockRabbitMQ)(nil)
+var _ rabbitmq.Client = (*MockRabbitMQ)(nil)
 
 // GetChannel returns the mock channel
 func (m *MockRabbitMQ) GetChannel() *amqp.Channel {
