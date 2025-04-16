@@ -8,7 +8,7 @@ import (
 	pb "github.com/imhasandl/notification-service/protos"
 )
 
-func (s *server) Consume() {
+func (s *Server) Consume() {
 	msgs, err := s.rabbitmq.GetChannel().Consume(
 		rabbitmq.QueueName, // queue
 		"",                 // consumer
@@ -33,7 +33,9 @@ func (s *server) Consume() {
 			_, err := s.SendNotification(context.Background(), notificationReq)
 			if err != nil {
 				log.Printf("Failed to send notification: %v", err)
-				msg.Reject(true)
+				if rejectErr := msg.Reject(true); rejectErr != nil {
+					log.Printf("Failed to reject message: %v", rejectErr)
+				}
 			}
 		}
 	}()
