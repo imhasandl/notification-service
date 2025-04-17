@@ -10,7 +10,7 @@ import (
 	"firebase.google.com/go/messaging"
 	"github.com/google/uuid"
 	"github.com/imhasandl/notification-service/cmd/server"
-	"github.com/imhasandl/notification-service/cmd/server/tests/mocks"
+	"github.com/imhasandl/notification-service/internal/mocks"
 	pb "github.com/imhasandl/notification-service/protos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

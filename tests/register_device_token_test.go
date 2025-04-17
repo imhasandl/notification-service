@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/imhasandl/notification-service/cmd/server"
-	"github.com/imhasandl/notification-service/cmd/server/tests/mocks"
+	"github.com/imhasandl/notification-service/internal/mocks"
 	"github.com/imhasandl/notification-service/internal/database"
 	pb "github.com/imhasandl/notification-service/protos"
 	"github.com/stretchr/testify/assert"
