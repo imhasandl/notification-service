@@ -132,21 +132,25 @@ type MockDBQuerier struct {
 	mock.Mock
 }
 
+// GetDeviceTokensByUserID mocks the DBQuerier interface GetDeviceTokensByUserID method
 func (m *MockDBQuerier) GetDeviceTokensByUserID(ctx context.Context, userID uuid.UUID) (string, error) {
 	args := m.Called(ctx, userID)
 	return args.String(0), args.Error(1)
 }
 
+// RegisterDeviceToken mocks the DBQuerier interface RegisterDeviceToken method
 func (m *MockDBQuerier) RegisterDeviceToken(ctx context.Context, arg database.RegisterDeviceTokenParams) (database.DeviceToken, error) {
 	args := m.Called(ctx, arg)
 	return args.Get(0).(database.DeviceToken), args.Error(1)
 }
 
+// DeleteDeviceToken mocks the DBQuerier interface DeleteDeviceToken method
 func (m *MockDBQuerier) DeleteDeviceToken(ctx context.Context, arg database.DeleteDeviceTokenParams) error {
 	args := m.Called(ctx, arg)
 	return args.Error(0)
 }
 
+// SendNotification mocks the DBQuerier interface SendNotification method
 func (m *MockDBQuerier) SendNotification(ctx context.Context) error {
 	args := m.Called(ctx)
 	return args.Error(0)
@@ -157,10 +161,12 @@ type MockRabbitMQClient struct {
 	mock.Mock
 }
 
+// Close mocks the RabbitMQClient Close method
 func (m *MockRabbitMQClient) Close() {
 	m.Called()
 }
 
+// GetChannel mocks the RabbitMQClient GetChannel method
 func (m *MockRabbitMQClient) GetChannel() *amqp.Channel {
 	args := m.Called()
 	return args.Get(0).(*amqp.Channel)
