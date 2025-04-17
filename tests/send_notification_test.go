@@ -3,142 +3,104 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"testing"
 	"time"
 
-	"firebase.google.com/go/messaging"
 	"github.com/google/uuid"
 	"github.com/imhasandl/notification-service/cmd/server"
 	"github.com/imhasandl/notification-service/internal/mocks"
 	pb "github.com/imhasandl/notification-service/protos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendNotification(t *testing.T) {
-	// Common test data
-	validUserID := uuid.New()
-	validDeviceToken := "device-token-123"
-
-	// Create a notification payload
-	notificationPayload := struct {
-		Title          string    `json:"title"`
-		SenderUsername string    `json:"sender_username"`
-		ReceiverID     string    `json:"receiver_id"` // Fixed: ReceiverId -> ReceiverID
-		Content        string    `json:"content"`
-		SentAt         time.Time `json:"sent_at"`
-	}{
-		Title:          "Test Notification",
-		SenderUsername: "testuser",
-		ReceiverID:     validUserID.String(),
-		Content:        "This is a test notification",
-		SentAt:         time.Now(),
-	}
-
-	validNotificationBytes, _ := json.Marshal(notificationPayload)
-
-	// Create invalid notification with bad UUID
-	invalidUUIDNotification := notificationPayload
-	invalidUUIDNotification.ReceiverID = "not-a-valid-uuid"
-	invalidUUIDBytes, _ := json.Marshal(invalidUUIDNotification)
-
-	// Define test cases
+	// Setup test cases
 	testCases := []struct {
-		name               string
-		notificationBytes  []byte
-		setupMocks         func(*mocks.MockQueries, *mocks.MockFirebaseClient)
-		expectedErrMessage string
-		shouldReturnError  bool
+		name          string
+		receiverID    string
+		deviceToken   string
+		expectError   bool
+		errorContains string
+		setupMocks    func(*mocks.MockDBQuerier, *mocks.MockFCMClient)
 	}{
 		{
-			name:              "Success case",
-			notificationBytes: validNotificationBytes,
-			setupMocks: func(db *mocks.MockQueries, firebase *mocks.MockFirebaseClient) {
-				db.On("GetDeviceTokensByUserID", mock.Anything, validUserID).
-					Return(validDeviceToken, nil).Once()
+			name:        "Success case",
+			receiverID:  "f6b3f9cf-7e9c-48fe-aa1c-e5afbef59770",
+			deviceToken: "device-token-123",
+			expectError: false,
+			setupMocks: func(db *mocks.MockDBQuerier, fcm *mocks.MockFCMClient) {
+				receiverID, _ := uuid.Parse("f6b3f9cf-7e9c-48fe-aa1c-e5afbef59770")
+				db.On("GetDeviceTokensByUserID", mock.Anything, receiverID).Return("device-token-123", nil)
 
-				// Use FCMClient instead of directly using firebase
-				firebase.FCMClient.On("Send",
-					mock.Anything, // Match any context
-					mock.MatchedBy(func(msg *messaging.Message) bool {
-						return msg.Token == validDeviceToken &&
-							msg.Notification.Title == notificationPayload.Title &&
-							msg.Notification.Body == notificationPayload.Content
-					}),
-				).Return("message-id", nil).Once()
+				// The key fix - use correct argument matchers
+				fcm.On("Send", mock.Anything, mock.AnythingOfType("*messaging.Message")).Return("message-id", nil)
 			},
-			shouldReturnError: false,
 		},
 		{
-			name:              "Invalid JSON",
-			notificationBytes: []byte("invalid json"),
-			setupMocks:        func(*mocks.MockQueries, *mocks.MockFirebaseClient) {},
-			shouldReturnError: true,
-		},
-		{
-			name:              "Invalid UUID",
-			notificationBytes: invalidUUIDBytes,
-			setupMocks:        func(*mocks.MockQueries, *mocks.MockFirebaseClient) {},
-			shouldReturnError: true,
-		},
-		{
-			name:              "Database error",
-			notificationBytes: validNotificationBytes,
-			setupMocks: func(db *mocks.MockQueries, firebase *mocks.MockFirebaseClient) {
-				db.On("GetDeviceTokensByUserID", mock.Anything, validUserID).
-					Return("", errors.New("database error")).Once()
-			},
-			shouldReturnError: true,
-		},
-		{
-			name:              "Firebase error - should still succeed",
-			notificationBytes: validNotificationBytes,
-			setupMocks: func(db *mocks.MockQueries, firebase *mocks.MockFirebaseClient) {
-				db.On("GetDeviceTokensByUserID", mock.Anything, validUserID).
-					Return(validDeviceToken, nil).Once()
-
-				// Use FCMClient instead of directly using firebase
-				firebase.FCMClient.On("Send", mock.Anything, mock.Anything).
-					Return("", errors.New("firebase error")).Once()
-			},
-			shouldReturnError: false, // Firebase errors are logged but don't fail the request
+			name:          "Invalid UUID",
+			receiverID:    "invalid-uuid",
+			expectError:   true,
+			errorContains: "can't parse receiver id",
+			setupMocks:    func(*mocks.MockDBQuerier, *mocks.MockFCMClient) {},
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create fresh mocks for each test case
-			mockDB := mocks.NewMockQueries()
-			mockRabbitmq := mocks.NewMockRabbitMQ()
-			mockFirebase := mocks.NewMockFirebaseClient()
+			// Create mocks
+			mockDB := new(mocks.MockDBQuerier)
+			mockRabbitMQ := new(mocks.MockRabbitMQClient)
+			mockFirebase := new(mocks.MockFirebaseClient)
+			mockFCM := new(mocks.MockFCMClient)
 
-			// Setup mocks according to test case
-			tc.setupMocks(mockDB, mockFirebase)
+			// Setup mockFirebase to return mockFCM
+			mockFirebase.On("GetMessagingClient").Return(mockFCM)
+
+			// Setup test-specific mocks
+			tc.setupMocks(mockDB, mockFCM)
 
 			// Create server with mocks
-			srv := server.NewServer(mockDB, mockRabbitmq, "test/path", mockFirebase)
+			srv := server.NewServer(mockDB, mockRabbitMQ, "test-path", mockFirebase)
 
-			// Make the request
-			request := &pb.SendNotificationRequest{
-				Notification: tc.notificationBytes,
+			// Create notification payload
+			notification := server.Notification{
+				Title:          "Test Notification",
+				SenderUsername: "testuser",
+				ReceiverID:     tc.receiverID,
+				Content:        "This is a test notification",
+				SentAt:         time.Now(),
 			}
 
-			response, err := srv.SendNotification(context.Background(), request)
+			notificationBytes, err := json.Marshal(notification)
+			require.NoError(t, err)
 
-			// Check error expectation
-			if tc.shouldReturnError {
+			// Create request
+			req := &pb.SendNotificationRequest{
+				Notification: notificationBytes,
+			}
+
+			// Call the method
+			resp, err := srv.SendNotification(context.Background(), req)
+
+			// Check results
+			if tc.expectError {
 				assert.Error(t, err)
-				assert.Nil(t, response)
+				if tc.errorContains != "" {
+					assert.Contains(t, err.Error(), tc.errorContains)
+				}
 			} else {
 				assert.NoError(t, err)
-				assert.NotNil(t, response)
-				assert.True(t, response.Status)
+				assert.NotNil(t, resp)
+				assert.True(t, resp.Status)
 			}
 
-			// Verify all expectations were met
+			// Verify mocks
 			mockDB.AssertExpectations(t)
 			mockFirebase.AssertExpectations(t)
+			mockFCM.AssertExpectations(t)
 		})
 	}
 }

@@ -62,6 +62,10 @@ func NewMockFirebaseClient() *MockFirebaseClient {
 
 // GetMessagingClient returns the FCM client for sending messages
 func (m *MockFirebaseClient) GetMessagingClient() firebase.MessagingClient {
+	args := m.Called()
+	if mockClient := args.Get(0); mockClient != nil {
+		return mockClient.(firebase.MessagingClient)
+	}
 	return m.FCMClient
 }
 
@@ -72,6 +76,11 @@ type MockFCMClient struct {
 
 // Send mocks the FCM Send method
 func (m *MockFCMClient) Send(ctx context.Context, message *messaging.Message) (string, error) {
+	// Add nil check to prevent panic
+	if m == nil {
+		return "", nil
+	}
+
 	args := m.Called(ctx, message)
 	return args.String(0), args.Error(1)
 }
@@ -116,4 +125,43 @@ type MockChannel struct {
 func (m *MockChannel) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args map[string]interface{}) (<-chan messaging.Message, error) {
 	mockArgs := m.Called(queue, consumer, autoAck, exclusive, noLocal, noWait, args)
 	return mockArgs.Get(0).(<-chan messaging.Message), mockArgs.Error(1)
+}
+
+// MockDBQuerier is a mock for the DBQuerier interface
+type MockDBQuerier struct {
+	mock.Mock
+}
+
+func (m *MockDBQuerier) GetDeviceTokensByUserID(ctx context.Context, userID uuid.UUID) (string, error) {
+	args := m.Called(ctx, userID)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockDBQuerier) RegisterDeviceToken(ctx context.Context, arg database.RegisterDeviceTokenParams) (database.DeviceToken, error) {
+	args := m.Called(ctx, arg)
+	return args.Get(0).(database.DeviceToken), args.Error(1)
+}
+
+func (m *MockDBQuerier) DeleteDeviceToken(ctx context.Context, arg database.DeleteDeviceTokenParams) error {
+	args := m.Called(ctx, arg)
+	return args.Error(0)
+}
+
+func (m *MockDBQuerier) SendNotification(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
+
+// MockRabbitMQClient is a mock for the RabbitMQ Client interface
+type MockRabbitMQClient struct {
+	mock.Mock
+}
+
+func (m *MockRabbitMQClient) Close() {
+	m.Called()
+}
+
+func (m *MockRabbitMQClient) GetChannel() *amqp.Channel {
+	args := m.Called()
+	return args.Get(0).(*amqp.Channel)
 }

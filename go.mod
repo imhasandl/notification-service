@@ -25,7 +25,6 @@ require (
 	cloud.google.com/go/longrunning v0.6.2 // indirect
 	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.49.0 // indirect
-	firebase.google.com/go v3.13.0+incompatible
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.48.1 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 // indirect
